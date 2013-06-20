@@ -13,43 +13,23 @@ public class CheckJMelody {
     private final static long FILE_AGE = 1000 * 60 * 30;
     public final static String FILE_AGE_MESSAGE = "File is more than 30 minutes old";
 
-    private final static String ACTIVE_CONNECTIONS = "activeConnections"; // activeConnections
-    private final static String ACTIVE_THREADS = "activeThreads"; // activeThreads
-    private final static String GC = "gc"; // gc
-    private final static String HTTP_HITS_RATE = "httpHitsRate"; // httpHitsRate
-    private final static String HTTP_MEAN_TIMES = "httpMeanTimes"; // httpMeanTimes
-    private final static String HTTP_SESSIONS = "httpSessions"; // httpSessions
-    private final static String HTTP_SYSTEM_ERRORS = "httpSystemErrors"; // httpSystemErrors
-    private final static String LOADED_CLASSES_COUNT = "loadedClassesCount"; // loadedClassesCount
-    private final static String SQL_HITS_RATE = "sqlHitsRate"; // sqlHitsRate
-    private final static String SQL_MEAN_TIMES = "sqlMeanTimes"; // sqlMeanTimes
-    private final static String SQL_SYSTEM_ERRORS = "sqlSystemErrors"; // sqlSystemErrors
-    private final static String THREAD_COUNT = "threadCount"; // threadCount
-    private final static String USED_CONNECTIONS = "usedConnections"; // usedConnections
-    private final static String USED_MEMORY = "usedMemory"; // usedMemory
-    private final static String USED_NON_HEAP_MEMORY = "usedNonHeapMemory"; // usedNonHeapMemory
+    private SimpleCommandLineParser parser;
+    
+    public CheckJMelody(String[] args) {
+        parser = new SimpleCommandLineParser(args);
+    }
 
-    public int checkRRD(String[] args) {
-        SimpleCommandLineParser parser = new SimpleCommandLineParser(args);
+    public boolean getKey(String key, String shortKey) {
+        return parser.containsKey(key, shortKey);
+    }
+    
+    /**
+     * Check the RRD database file returning an integer status.
+     */
+    public int checkRRD() {
+
         String rrdPath = parser.getValue("rrdpath", "rrd", "r");
-
-        boolean ac = parser.containsKey("activeconnections", "ac");
-        boolean at = parser.containsKey("activethreads", "at");
-        boolean gc = parser.containsKey("gc", "g");
-        boolean httpHitRate = parser.containsKey("hitrate", "hr");
-        boolean httpMeanTime = parser.containsKey("httpmeantime", "hmt");
-        boolean httpSessions = parser.containsKey("httpsessions", "hs");
-        boolean httpSytemsErros = parser.containsKey("httperrors", "he");
-        boolean loadedClassCount = parser.containsKey("loadedclasscount", "lcc");
-        boolean sqlHitRate = parser.containsKey("sqlhitrate", "shr");
-        boolean sqlMeanTime = parser.containsKey("sqlmeantime", "smt");
-        boolean sqlSystemError = parser.containsKey("sqlerror", "sse");
-        boolean threadCount = parser.containsKey("threadcount", "tc");
-        boolean usedConnections = parser.containsKey("usedconnections", "uc");
-        boolean usedHeap = parser.containsKey("heap", "uh");
-        boolean usedNonHeap = parser.containsKey("nonheap", "unh");
-        boolean suppressFileAge = parser.containsKey("suppress", "s");
-
+        
         double warning = 0;
         double critical = 0;
 
@@ -63,41 +43,41 @@ public class CheckJMelody {
         try {
 
             String dsName = "";
-            if (ac) {
-                dsName = ACTIVE_CONNECTIONS;
-            } else if (at) {
-                dsName = ACTIVE_THREADS;
-            } else if (gc) {
-                dsName = GC;
-            } else if (httpHitRate) {
-                dsName = HTTP_HITS_RATE;
-            } else if (httpMeanTime) {
-                dsName = HTTP_MEAN_TIMES;
-            } else if (httpSessions) {
-                dsName = HTTP_SESSIONS;
-            } else if (httpSytemsErros) {
-                dsName = HTTP_SYSTEM_ERRORS;
-            } else if (loadedClassCount) {
-                dsName = LOADED_CLASSES_COUNT;
-            } else if (sqlHitRate) {
-                dsName = SQL_HITS_RATE;
-            } else if (sqlMeanTime) {
-                dsName = SQL_MEAN_TIMES;
-            } else if (sqlSystemError) {
-                dsName = SQL_SYSTEM_ERRORS;
-            } else if (threadCount) {
-                dsName = THREAD_COUNT;
-            } else if (usedConnections) {
-                dsName = USED_CONNECTIONS;
-            } else if (usedHeap) {
-                dsName = USED_MEMORY;
-            } else if (usedNonHeap) {
-                dsName = USED_NON_HEAP_MEMORY;
+            if (getKey("activeconnections", "ac")) {
+                dsName = "activeConnections";
+            } else if (getKey("activethreads", "at")) {
+                dsName = "activeThreads";
+            } else if (getKey("gc", "g")) {
+                dsName = "gc";
+            } else if (getKey("hitrate", "hr")) {
+                dsName = "httpHitsRate";
+            } else if (getKey("httpmeantime", "hmt")) {
+                dsName = "httpMeanTimes";
+            } else if (getKey("httpsessions", "hs")) {
+                dsName = "httpSessions";
+            } else if (getKey("httperrors", "he")) {
+                dsName = "httpSystemErrors";
+            } else if (getKey("loadedclasscount", "lcc")) {
+                dsName = "loadedClassesCount";
+            } else if (getKey("sqlhitrate", "shr")) {
+                dsName = "sqlHitsRate";
+            } else if (getKey("sqlmeantime", "smt")) {
+                dsName = "sqlMeanTimes";
+            } else if (getKey("sqlerror", "sse")) {
+                dsName = "sqlSystemErrors";
+            } else if (getKey("threadcount", "tc")) {
+                dsName = "threadCount";
+            } else if (getKey("usedconnections", "uc")) {
+                dsName = "usedConnections";
+            } else if (getKey("heap", "uh")) {
+                dsName = "usedMemory";
+            } else if (getKey("nonheap", "unh")) {
+                dsName = "usedNonHeapMemory";
             }
 
             File f = new File(rrdPath + File.separator + dsName + ".rrd");
 
-            if (!suppressFileAge) {
+            if (!getKey("suppress", "s")) {
                 long lastModified = f.lastModified();
                 long now = new Date().getTime();
 
@@ -138,9 +118,9 @@ public class CheckJMelody {
     }
 
     public static void main(String[] args) {
-        
-        CheckJMelody cm = new CheckJMelody();
-        int retVal = cm.checkRRD(args);
+
+        CheckJMelody cm = new CheckJMelody(args);
+        int retVal = cm.checkRRD();
         System.exit(retVal);
     }
 
