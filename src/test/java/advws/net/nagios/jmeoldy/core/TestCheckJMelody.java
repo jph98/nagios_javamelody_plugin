@@ -11,6 +11,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import advws.net.nagios.jmelody.core.CheckJMelody;
+
 public class TestCheckJMelody {
 	
 	private final static String activeConnections ="activeConnections - 0 OK  | activeConnections=0;0;0;\n";
