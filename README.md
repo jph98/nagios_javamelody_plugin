@@ -27,14 +27,26 @@ Usage
 
 Executing the JavaMelody plugin executable JAR from the command line with the following
 
-        java -jar target/javamelody_plugin.jar -r `pwd`/rrd -uh -w 100 -c 200
+        java -jar target/javamelody_plugin.jar -r `pwd`/rrd -tc -w 160 -c 200
 
 * r - defines the path where the RRD files are found.  If you're running Tomcat this will be the temp directory (e.g.. /usr/local/tomcat/temp/javamelody)
-* uh - specifies the key of the metric to check for.  A full list can be found in CheckMelody getDataSourceName() where the fullname is mapped to the key.  In this case usedMemory -> uh.
+* tc - specifies the key of the metric to check for.  A full list can be found in CheckMelody getDataSourceName() where the fullname is mapped to the key.  You can use the long form "threadCount" or short form "tc".
 * w - specifies the warning level
 * c - specifies tthe critical level
 
 In the example above we've ommitted the -s flag.  This means the max file age check will be skipped for the RRD file.
+
+For the values (-w 190 -c 200) a standard message will be produced:
+
+        threadCount - 163 OK  | threadCount=163;190;200;
+
+For the values (-w 160 -c 200) a warning message will be produced:
+
+        threadCount - 163 WARNING  | threadCount=163;100;200;
+        
+For the values (-w 160 -c 162) a critical message will be produced:
+
+        threadCount - 163 CRITICAL  | threadCount=163;100;200;
 
 ###  Commands
 
