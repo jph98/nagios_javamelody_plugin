@@ -33,9 +33,8 @@ Executing the JavaMelody plugin executable JAR from the command line with the fo
 * uh - specifies the key of the metric to check for.  A full list can be found in CheckMelody getDataSourceName() where the fullname is mapped to the key.  In this case usedMemory -> uh.
 * w - specifies the warning level
 * c - specifies tthe critical level
-* 
-If you specify the -s flag then that means suppress output and just return whether the file is older then the max file age (30 mins by default).
 
+In the example above we've ommitted the -s flag.  This means the max file age check will be skipped for the RRD file.
 
 ###  Commands
 
