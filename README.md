@@ -23,9 +23,23 @@ mv javamelody_plugin/* /usr/local/nagios/libexec
 Usage
 -----
 
+### Testing the plugin from the Command Line
+
+Executing the JavaMelody plugin executable JAR from the command line with the following
+
+        java -jar target/javamelody_plugin.jar -r `pwd`/rrd -uh -w 100 -c 200
+
+* r - defines the path where the RRD files are found.  If you're running Tomcat this will be the temp directory (e.g.. /usr/local/tomcat/temp/javamelody)
+* uh - specifies the key of the metric to check for.  A full list can be found in CheckMelody getDataSourceName() where the fullname is mapped to the key.  In this case usedMemory -> uh.
+* w - specifies the warning level
+* c - specifies tthe critical level
+* 
+If you specify the -s flag then that means suppress output and just return whether the file is older then the max file age (30 mins by default).
+
+
 ###  Commands
 
-First define a command in /etc/nagios/commands.cfg.
+First define a command in /etc/nagios/commands.cfg
 
 #### Local
 
