@@ -1,6 +1,8 @@
 JavaMelody Nagios plugin
 =============
 
+https://github.com/jph98/nagios_javamelody_plugin
+
 This plugin can be used to capture JavaMelody Data in Nagios
 
 Installation

@@ -177,9 +177,15 @@ public class TestCheckJMelody {
 	@Test
 	public void testFileAgeOld() {
 			
-	    int retVal = getRetVal(new String[] {"-r","rrd", "-unh"});
+	    String[] args = new String[] {"-r","rrd", "-unh"};
+	    CheckJMelody cm = new CheckJMelody(args);
+	    
+	    // Artificially set the max file age
+	    cm.setMaxFileAge(10);
+	    int result = cm.checkRRD();
+	    
 		assertEquals(CheckJMelody.FILE_AGE_MESSAGE + "\n", outContent.toString());
-		assertEquals(3, retVal);
+		assertEquals(3, result);
 	}
 	
 	@Test

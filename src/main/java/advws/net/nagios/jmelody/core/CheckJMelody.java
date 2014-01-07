@@ -8,15 +8,20 @@ import java.util.Date;
 import org.jrobin.core.*;
 import advws.net.nagios.jmelody.util.SimpleCommandLineParser;
 
+/**
+ * Command line check for JavaMelody.
+ */
 public class CheckJMelody {
-
-    private final static long FILE_AGE = 1000 * 60 * 30;
-    public final static String FILE_AGE_MESSAGE = "File is more than 30 minutes old";
-
+        
     private SimpleCommandLineParser parser;
+    
+    public final static String FILE_AGE_MESSAGE = "File is more than 30 minutes old";
+    private final static long THIRTY_MINS_DEFAULT = 1000 * 60 * 30;
+    private long maxFileAge;
     
     public CheckJMelody(String[] args) {
         parser = new SimpleCommandLineParser(args);
+        maxFileAge = THIRTY_MINS_DEFAULT;
     }
 
     public boolean getKey(String key, String shortKey) {
@@ -41,39 +46,8 @@ public class CheckJMelody {
         }
 
         try {
-
-            String dsName = "";
-            if (getKey("activeconnections", "ac")) {
-                dsName = "activeConnections";
-            } else if (getKey("activethreads", "at")) {
-                dsName = "activeThreads";
-            } else if (getKey("gc", "g")) {
-                dsName = "gc";
-            } else if (getKey("hitrate", "hr")) {
-                dsName = "httpHitsRate";
-            } else if (getKey("httpmeantime", "hmt")) {
-                dsName = "httpMeanTimes";
-            } else if (getKey("httpsessions", "hs")) {
-                dsName = "httpSessions";
-            } else if (getKey("httperrors", "he")) {
-                dsName = "httpSystemErrors";
-            } else if (getKey("loadedclasscount", "lcc")) {
-                dsName = "loadedClassesCount";
-            } else if (getKey("sqlhitrate", "shr")) {
-                dsName = "sqlHitsRate";
-            } else if (getKey("sqlmeantime", "smt")) {
-                dsName = "sqlMeanTimes";
-            } else if (getKey("sqlerror", "sse")) {
-                dsName = "sqlSystemErrors";
-            } else if (getKey("threadcount", "tc")) {
-                dsName = "threadCount";
-            } else if (getKey("usedconnections", "uc")) {
-                dsName = "usedConnections";
-            } else if (getKey("heap", "uh")) {
-                dsName = "usedMemory";
-            } else if (getKey("nonheap", "unh")) {
-                dsName = "usedNonHeapMemory";
-            }
+             
+            String dsName = getDataSourceName();
 
             File f = new File(rrdPath + File.separator + dsName + ".rrd");
 
@@ -81,7 +55,7 @@ public class CheckJMelody {
                 long lastModified = f.lastModified();
                 long now = new Date().getTime();
 
-                if (now - lastModified > FILE_AGE) {
+                if (now - lastModified > getMaxFileAge()) {
                     System.out.println(FILE_AGE_MESSAGE);
                     return 3;
                 }
@@ -91,6 +65,7 @@ public class CheckJMelody {
             double value = db.getLastDatasourceValue(dsName);
 
             String textOutput = dsName + " - " + convertDoubleToString(value);
+            
             String perfData = " | " + dsName + "=" + convertDoubleToString(value) + ";"
                     + convertDoubleToString(warning) + ";" + convertDoubleToString(critical) + ";";
 
@@ -117,6 +92,55 @@ public class CheckJMelody {
         }
     }
 
+    long getMaxFileAge() {
+        return maxFileAge;
+    }
+        
+    void setMaxFileAge(long maxFileAge) {               
+        this.maxFileAge = maxFileAge;
+    }
+
+    private String getDataSourceName() {
+        
+        String dsName = "";
+        if (getKey("activeconnections", "ac")) {
+            dsName = "activeConnections";
+        } else if (getKey("activethreads", "at")) {
+            dsName = "activeThreads";
+        } else if (getKey("gc", "g")) {
+            dsName = "gc";
+        } else if (getKey("hitrate", "hr")) {
+            dsName = "httpHitsRate";
+        } else if (getKey("httpmeantime", "hmt")) {
+            dsName = "httpMeanTimes";
+        } else if (getKey("httpsessions", "hs")) {
+            dsName = "httpSessions";
+        } else if (getKey("httperrors", "he")) {
+            dsName = "httpSystemErrors";
+        } else if (getKey("loadedclasscount", "lcc")) {
+            dsName = "loadedClassesCount";
+        } else if (getKey("sqlhitrate", "shr")) {
+            dsName = "sqlHitsRate";
+        } else if (getKey("sqlmeantime", "smt")) {
+            dsName = "sqlMeanTimes";
+        } else if (getKey("sqlerror", "sse")) {
+            dsName = "sqlSystemErrors";
+        } else if (getKey("threadcount", "tc")) {
+            dsName = "threadCount";
+        } else if (getKey("usedconnections", "uc")) {
+            dsName = "usedConnections";
+        } else if (getKey("heap", "uh")) {
+            dsName = "usedMemory";
+        } else if (getKey("nonheap", "unh")) {
+            dsName = "usedNonHeapMemory";
+        }
+        return dsName;
+    }
+    
+    private static String convertDoubleToString(double d) {
+        return new BigDecimal(d).toString();
+    }
+    
     public static void main(String[] args) {
 
         CheckJMelody cm = new CheckJMelody(args);
@@ -124,8 +148,5 @@ public class CheckJMelody {
         System.exit(retVal);
     }
 
-    private static String convertDoubleToString(double d) {
-        return new BigDecimal(d).toString();
-    }
 
 }
