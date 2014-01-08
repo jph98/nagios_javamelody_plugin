@@ -7,4 +7,5 @@
   <classpathentry kind="var" path="M2_REPO/org/jrobin/jrobin/1.5.12/jrobin-1.5.12.jar"/>
   <classpathentry kind="var" path="M2_REPO/junit/junit/4.10/junit-4.10.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/hamcrest/hamcrest-core/1.1/hamcrest-core-1.1.jar"/>
+  <classpathentry kind="var" path="M2_REPO/commons-collections/commons-collections/3.2.1/commons-collections-3.2.1.jar"/>
 </classpath>
