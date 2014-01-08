@@ -4,20 +4,68 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.Map;
 
-import org.jrobin.core.*;
+import org.apache.commons.collections.keyvalue.MultiKey;
+import org.apache.commons.collections.map.MultiKeyMap;
+import org.jrobin.core.RrdDb;
+import org.jrobin.core.RrdException;
+
 import advws.net.nagios.jmelody.util.SimpleCommandLineParser;
 
 /**
- * Command line check for JavaMelody.
+ *  CheckJMelody provides a RRD file reader and warning/critical alerts based on thresholds.
  */
-public class CheckJMelody {
-        
-    private SimpleCommandLineParser parser;
-    
+public class CheckJMelody {                
+           
     public final static String FILE_AGE_MESSAGE = "File is more than 30 minutes old";
-    private final static long THIRTY_MINS_DEFAULT = 1000 * 60 * 30;
+    public final static long THIRTY_MINS_DEFAULT = 1000 * 60 * 30;
+    
     private long maxFileAge;
+    
+    private static final String AC = "activeConnections";
+    private static final String AT = "activeThreads";
+    private static final String GC = "gc";    
+    private static final String HR = "httpHitsRate";    
+    private static final String HMT = "httpMeanTimes";
+    private static final String HS = "httpSessions";
+    private static final String HE = "httpSystemErrors";
+    private static final String LCC = "loadedClassesCount";
+    private static final String SHR = "sqlHitsRate";
+    private static final String SMT = "sqlMeanTimes";
+    private static final String SSE = "sqlSystemErrors";
+    private static final String TC = "threadCount";
+    private static final String UC = "usedConnections";
+    private static final String UH = "usedMemory";
+    private static final String UNH = "usedNonHeapMemory";
+        
+    private static final String SUPPRESS_SHORTKEY = "s";
+    private static final String SUPPRESS_LONG_KEY = "suppress";
+    
+    private static final String CRITICAL = "c";
+    private static final String WARNING = "w";
+    
+    @SuppressWarnings({ "unchecked", "serial" })
+    private Map<MultiKey, String> keys = new MultiKeyMap() {{
+    
+        put("ac", "activeconnections", AC);
+        put("at", "activethreads", AT);
+        put("g", "gc", GC);
+        put("hr", "hitrate", HR);
+        put("hmt", "httpmeantime", HMT);
+        put("hs", "httpsessions", HS);
+        put("he", "httperrors", HE);
+        put("lcc", "loadedclasscount", LCC);
+        put("shr", "sqlhitrate", SHR);
+        put("smt", "sqlmeantime", SMT);
+        put("sse", "sqlerror", SSE);
+        put("tc", "threadcount", TC);
+        put("uc", "usedconnections", UC);
+        put("uh", "heap", UH);
+        put("unh", "nonheap", UNH);
+    }};
+    
+    private SimpleCommandLineParser parser;
     
     public CheckJMelody(String[] args) {
         parser = new SimpleCommandLineParser(args);
@@ -38,11 +86,11 @@ public class CheckJMelody {
         double warning = 0;
         double critical = 0;
 
-        if (parser.containsKey("w")) {
-            warning = Double.parseDouble(parser.getValue("w"));
+        if (parser.containsKey(WARNING)) {
+            warning = Double.parseDouble(parser.getValue(WARNING));
         }
-        if (parser.containsKey("c")) {
-            critical = Double.parseDouble(parser.getValue("c"));
+        if (parser.containsKey(CRITICAL)) {
+            critical = Double.parseDouble(parser.getValue(CRITICAL));
         }
 
         try {
@@ -51,11 +99,13 @@ public class CheckJMelody {
 
             File f = new File(rrdPath + File.separator + dsName + ".rrd");
 
-            if (!getKey("suppress", "s")) {
-                long lastModified = f.lastModified();
+            if (!getKey(SUPPRESS_LONG_KEY, SUPPRESS_SHORTKEY)) {
+                
                 long now = new Date().getTime();
-
-                if (now - lastModified > getMaxFileAge()) {
+                long lastModified = f.lastModified();                
+                long time = now - lastModified;
+                               
+                if (time > getMaxFileAge() ) {
                     System.out.println(FILE_AGE_MESSAGE);
                     return 3;
                 }
@@ -103,37 +153,14 @@ public class CheckJMelody {
     private String getDataSourceName() {
         
         String dsName = "";
-        if (getKey("activeconnections", "ac")) {
-            dsName = "activeConnections";
-        } else if (getKey("activethreads", "at")) {
-            dsName = "activeThreads";
-        } else if (getKey("gc", "g")) {
-            dsName = "gc";
-        } else if (getKey("hitrate", "hr")) {
-            dsName = "httpHitsRate";
-        } else if (getKey("httpmeantime", "hmt")) {
-            dsName = "httpMeanTimes";
-        } else if (getKey("httpsessions", "hs")) {
-            dsName = "httpSessions";
-        } else if (getKey("httperrors", "he")) {
-            dsName = "httpSystemErrors";
-        } else if (getKey("loadedclasscount", "lcc")) {
-            dsName = "loadedClassesCount";
-        } else if (getKey("sqlhitrate", "shr")) {
-            dsName = "sqlHitsRate";
-        } else if (getKey("sqlmeantime", "smt")) {
-            dsName = "sqlMeanTimes";
-        } else if (getKey("sqlerror", "sse")) {
-            dsName = "sqlSystemErrors";
-        } else if (getKey("threadcount", "tc")) {
-            dsName = "threadCount";
-        } else if (getKey("usedconnections", "uc")) {
-            dsName = "usedConnections";
-        } else if (getKey("heap", "uh")) {
-            dsName = "usedMemory";
-        } else if (getKey("nonheap", "unh")) {
-            dsName = "usedNonHeapMemory";
+
+        for (MultiKey key: keys.keySet()) {
+        
+            if (getKey((String) key.getKeys()[0], (String) key.getKeys()[1])) {
+                return keys.get(key);
+            }
         }
+               
         return dsName;
     }
     
@@ -147,6 +174,5 @@ public class CheckJMelody {
         int retVal = cm.checkRRD();
         System.exit(retVal);
     }
-
 
 }
