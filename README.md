@@ -50,6 +50,18 @@ For the values (-w 160 -c 162) a critical message will be produced:
 
 ###  Commands
 
+You can setup an nrpe config file (/etc/nrpe.d/jmelody.cfg) for the commands you want to check with the following sort of structure:
+
+        command[check_jm_mem_app]=/usr/lib64/nagios/plugins/check_jmelody -s -r /opt/application/tomcat7/temp/javamelody/app_` hostname -f ` -uh -w 1000000000 -c 1600000000
+        
+Specifying the warning and critical levels.  The above checks for used heap memory.
+
+This will call the check_melody bash script (you can find that in the support directory.
+
+That in turn will call the JavaMelody plugin JAR file with the above values.
+
+...
+
 First define a command in /etc/nagios/commands.cfg
 
 #### Local
@@ -97,7 +109,7 @@ Testing
 
 To run the tests:
 
-    $ mvn test
+   mvn test
 
 
 Contributing
