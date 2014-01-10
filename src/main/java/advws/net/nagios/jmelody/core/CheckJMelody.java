@@ -18,6 +18,7 @@ import advws.net.nagios.jmelody.util.SimpleCommandLineParser;
  */
 public class CheckJMelody {                
            
+    private static final boolean READ_ONLY = true;
     public final static String FILE_AGE_MESSAGE = "File is more than 30 minutes old";
     public final static long THIRTY_MINS_DEFAULT = 1000 * 60 * 30;
     
@@ -44,6 +45,11 @@ public class CheckJMelody {
     
     private static final String CRITICAL = "c";
     private static final String WARNING = "w";
+    
+    // Nagios return values
+    private static final int NAGIOS_OK = 0;
+    private static final int NAGIOS_WARNING = 1;
+    private static final int NAGIOS_CRITICAL = 2;
     
     @SuppressWarnings({ "unchecked", "serial" })
     private Map<MultiKey, String> keys = new MultiKeyMap() {{
@@ -83,14 +89,14 @@ public class CheckJMelody {
 
         String rrdPath = parser.getValue("rrdpath", "rrd", "r");
         
-        double warning = 0;
-        double critical = 0;
+        double warningValue = 0;
+        double criticalValue = 0;
 
         if (parser.containsKey(WARNING)) {
-            warning = Double.parseDouble(parser.getValue(WARNING));
+            warningValue = Double.parseDouble(parser.getValue(WARNING));
         }
         if (parser.containsKey(CRITICAL)) {
-            critical = Double.parseDouble(parser.getValue(CRITICAL));
+            criticalValue = Double.parseDouble(parser.getValue(CRITICAL));
         }
 
         try {
@@ -111,34 +117,34 @@ public class CheckJMelody {
                 }
             }
 
-            RrdDb db = new RrdDb(f);
-            double value = db.getLastDatasourceValue(dsName);
+            RrdDb db = new RrdDb(f, READ_ONLY);
+            double rrdValue = db.getLastDatasourceValue(dsName);
 
-            String textOutput = dsName + " - " + convertDoubleToString(value);
+            String textOutput = dsName + " - " + convertDoubleToString(rrdValue);
             
-            String perfData = " | " + dsName + "=" + convertDoubleToString(value) + ";"
-                    + convertDoubleToString(warning) + ";" + convertDoubleToString(critical) + ";";
+            String perfData = " | " + dsName + "=" + convertDoubleToString(rrdValue) + ";"
+                    + convertDoubleToString(warningValue) + ";" + convertDoubleToString(criticalValue) + ";";
 
-            if (warning != 0 && critical != 0) {
+            if (warningValue != 0 && criticalValue != 0) {
 
-                if (value > critical) {
+                if (rrdValue > criticalValue) {
                     System.out.println(textOutput + " CRITICAL " + perfData);
-                    return 2;
-                } else if (value > warning) {
+                    return NAGIOS_CRITICAL;
+                } else if (rrdValue > warningValue) {
                     System.out.println(textOutput + " WARNING " + perfData);
-                    return 1;
+                    return NAGIOS_WARNING;
                 }
             }
 
             System.out.println(textOutput + " OK " + perfData);
-            return 0;
+            return NAGIOS_OK;
 
         } catch (IOException e) {
             System.out.println(e.toString());
-            return 3;
+            return NAGIOS_CRITICAL;
         } catch (RrdException e) {
             System.out.println(e.toString());
-            return 3;
+            return NAGIOS_CRITICAL;
         }
     }
 
