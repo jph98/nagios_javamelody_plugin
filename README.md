@@ -5,14 +5,14 @@ https://github.com/jph98/nagios_javamelody_plugin
 
 This plugin can be used to capture JavaMelody Data in Nagios
 
-The RRD files from JavaMelody are create in JRobin format, which means you can't inspect them with rrdtool without converting them.  See this page for a tutorial on JRobin:
+The RRD files from JavaMelody are created in JRobin format, which means you can't inspect them with rrdtool without converting them.  See this page for a tutorial on JRobin:
 
 http://oldwww.jrobin.org/api/tutorial.html
 
 Installation
 -----------
 
-Before installation you will need to have java 1.5 or higher.
+You will need to have Java 1.5 or higher installed to run this:
 
 ```
 wget https://github.com/downloads/sbower/nagios_javamelody_plugin/javamelody_plugin.tar.gz
